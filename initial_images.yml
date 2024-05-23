@@ -1,0 +1,43 @@
+version: '1.0'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: 'portainer'
+    restart: always
+    ports:
+      - '8000:8000'
+      - '9443:9443'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'portainer_data:/data'
+    networks:
+      app_net:
+        ipv4_address: 172.20.0.2
+  
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      app_net:
+        ipv4_address: 172.20.0.5
+    container_name: 'nginx-proxy-manager'
+
+networks:
+  app_net:
+    name: network_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  portainer_data:
