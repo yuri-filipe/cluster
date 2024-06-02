@@ -140,16 +140,6 @@ services:
       app_net:
         ipv4_address: 172.20.2.2
 
-  adminer:
-    image: adminer
-    restart: always
-    container_name: adminer
-    networks:
-      app_net:
-        ipv4_address: 172.20.2.3
-    ports:
-      - 8082:8080
-
   postgres-sonar:
     image: postgres:12
     hostname: postgres-sonar
