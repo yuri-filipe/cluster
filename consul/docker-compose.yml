@@ -1,63 +1,63 @@
 version: '2.0'
 
 services:
-consul-server-1:
-  image: hashicorp/consul:1.18
-  hostname: consul-server-1
-  restart: always
-  container_name: consul-server-1
-  ports:
-    - "8500:8500" # UI, API
-    - "8600:8600/udp" # DNS
-  volumes:
-    - 'consul-server-1-data:/consul/data'
-    - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
-  command:
-    - consul
-    - agent
-    - -server
-    - -bootstrap-expect=2
-    - -ui
-    - -node=consul-server-1
-    - -client=0.0.0.0
-    - -data-dir=/consul/data
-    - -retry-join=consul-server-2
-    - -encrypt=${CONSUL_ENCRYPT_KEY}
-    - -config-dir=/consul/config # Aponta para o diretório de configuração
-  networks:
-    app_net:
-      ipv4_address: 172.20.1.4
+  consul-server-1:
+    image: hashicorp/consul:1.18
+    hostname: consul-server-1
+    restart: always
+    container_name: consul-server-1
+    ports:
+      - "8500:8500" # UI, API
+      - "8600:8600/udp" # DNS
+    volumes:
+      - 'consul-server-1-data:/consul/data'
+      - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
+    command:
+      - consul
+      - agent
+      - -server
+      - -bootstrap-expect=2
+      - -ui
+      - -node=consul-server-1
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -retry-join=consul-server-2
+      - -encrypt=${CONSUL_ENCRYPT_KEY}
+      - -config-dir=/consul/config # Aponta para o diretório de configuração
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.4
 
-consul-server-2:
-  image: hashicorp/consul:1.18
-  hostname: consul-server-2
-  restart: always
-  container_name: consul-server-2
-  volumes:
-    - 'consul-server-2-data:/consul/data'
-    - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
-  command:
-    - consul
-    - agent
-    - -server
-    - -bootstrap-expect=2
-    - -node=consul-server-2
-    - -client=0.0.0.0
-    - -data-dir=/consul/data
-    - -retry-join=consul-server-1
-    - -encrypt=${CONSUL_ENCRYPT_KEY}
-    - -config-dir=/consul/config # Aponta para o diretório de configuração
+  consul-server-2:
+    image: hashicorp/consul:1.18
+    hostname: consul-server-2
+    restart: always
+    container_name: consul-server-2
+    volumes:
+      - 'consul-server-2-data:/consul/data'
+      - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
+    command:
+      - consul
+      - agent
+      - -server
+      - -bootstrap-expect=2
+      - -node=consul-server-2
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -retry-join=consul-server-1
+      - -encrypt=${CONSUL_ENCRYPT_KEY}
+      - -config-dir=/consul/config # Aponta para o diretório de configuração
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.5
   networks:
     app_net:
-      ipv4_address: 172.20.1.5
-networks:
-  app_net:
-    name: network_proxy
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
+      name: network_proxy
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 172.20.0.0/16
+            gateway: 172.20.0.1
 
 volumes:
   portainer_data:
