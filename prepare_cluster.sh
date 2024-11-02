@@ -1,10 +1,20 @@
 #!/bin/bash
 
+# Códigos de cor ANSI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # Sem cor
+
+# Definir a variável CLUSTER_REPOSITORY
+CLUSTER_REPOSITORY="https://github.com/yuri-filipe/cluster.git"
+
 # Função para verificar o status do comando
 check_status() {
   if [ $? -ne 0 ]; then
-    echo "Falha na etapa: $1"
+    echo -e "${RED}Falha na etapa: $1${NC}"
     exit 1
+  else
+    echo -e "${GREEN}Etapa concluída: $1${NC}"
   fi
 }
 
@@ -48,9 +58,18 @@ check_status "Atualização da lista de pacotes após adição do Docker"
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 check_status "Instalação do Docker"
 
-# Criar grupo docker
-sudo groupadd docker
-check_status "Criação do grupo Docker"
+# Verificar se o grupo docker já existe
+if getent group docker > /dev/null 2>&1; then
+  echo -e "${GREEN}O grupo Docker já existe.${NC}"
+else
+  sudo groupadd docker
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}Falha na etapa: Criação do grupo Docker${NC}"
+    exit 1
+  else
+    echo -e "${GREEN}Etapa concluída: Criação do grupo Docker${NC}"
+  fi
+fi
 
 # Adicionar usuário ao grupo docker
 sudo usermod -aG docker $USER
@@ -64,4 +83,11 @@ check_status "Atualização do grupo do usuário"
 docker run hello-world
 check_status "Teste da instalação do Docker"
 
-echo "Instalação concluída com sucesso!"
+# Baixar repositório do cluster
+git clone "$CLUSTER_REPOSITORY"
+check_status "Baixar repositório do cluster"
+
+cd cluster
+check_status "Entrar no diretório do repositório do cluster"
+
+echo -e "${GREEN}Instalação concluída com sucesso!${NC}"
