@@ -23,7 +23,7 @@ Password:
 ### Login padrão do Sonatype Nexus Repository
 
 ```bash
-    docker exec -it core-sonatype-nexus3-1 bash
+    docker exec -it sonatype-nexus bash
 ```
 
 ```bash
@@ -40,3 +40,16 @@ Password:
     cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
+### Configuração imagens
+
+```bash
+    nano install.sh
+```
+
+```bash
+    chmod +x ./install.sh
+```
+
+```bash
+    sudo ./install.sh
+```

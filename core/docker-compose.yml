@@ -16,7 +16,7 @@ services:
   nginx-proxy-manager:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: 'nginx-proxy-manager'
-    restart: unless-stopped
+    restart: always
     ports:
       - '80:80'
       - '81:81'
@@ -27,6 +27,56 @@ services:
     networks:
       app_net:
         ipv4_address: 172.20.1.3
+
+  consul-server-1:
+    image: hashicorp/consul:1.18
+    hostname: consul-server-1
+    restart: always
+    container_name: consul-server-1
+    ports:
+      - "8500:8500" # UI, API
+      - "8600:8600/udp" # DNS
+    volumes:
+      - 'consul-server-1-data:/consul/data'
+      - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
+    command:
+      - consul
+      - agent
+      - -server
+      - -bootstrap-expect=2
+      - -ui
+      - -node=consul-server-1
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -retry-join=consul-server-2
+      - -encrypt=${CONSUL_ENCRYPT_KEY}
+      - -config-dir=/consul/config # Aponta para o diretório de configuração
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.4
+
+  consul-server-2:
+    image: hashicorp/consul:1.18
+    hostname: consul-server-2
+    restart: always
+    container_name: consul-server-2
+    volumes:
+      - 'consul-server-2-data:/consul/data'
+      - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
+    command:
+      - consul
+      - agent
+      - -server
+      - -bootstrap-expect=2
+      - -node=consul-server-2
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -retry-join=consul-server-1
+      - -encrypt=${CONSUL_ENCRYPT_KEY}
+      - -config-dir=/consul/config # Aponta para o diretório de configuração
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.5
 
   sonatype-nexus:
     image: sonatype/nexus3:latest
@@ -45,6 +95,7 @@ services:
     image: jenkins/jenkins:lts
     privileged: true
     user: root
+    restart: always
     ports:
       - '8080:8080'
       - '50000:50000'
@@ -61,6 +112,7 @@ services:
     depends_on:
       - postgres-sonar
     hostname: sonarqube
+    restart: always
     container_name: sonarqube
     networks:
       app_net:
@@ -76,7 +128,7 @@ services:
     ports:
       - "9000:9000"
 
-  # Banco de Dados
+# Banco de Dados
 
   postgres-1:
     image: postgres
@@ -86,14 +138,45 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: 9WPPq@6erq870t#9F@D'qS80o~ctXF,j
     networks:
       app_net:
         ipv4_address: 172.20.2.2
+  
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: 'sqlserver'
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "9WPPq@6erq870t#9F@D'qS80o~ctXF,j"
+    ports:
+      - '1433:1433'
+    networks:
+      app_net:
+        ipv4_address: 172.20.2.5
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+  
+  neo4j:
+    image: neo4j:latest
+    container_name: 'neo4j'
+    restart: always
+    ports:
+      - '7474:7474'
+      - '7687:7687'
+    volumes:
+      - '/path/to/your/data:/data'  # Substitua '/path/to/your/data' pelo caminho desejado
+    environment:
+      - NEO4J_AUTH=neo4j/9WPPq@6erq870t#9F@D'qS80o~ctXF,j
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.6
 
   postgres-sonar:
     image: postgres:12
     hostname: postgres-sonar
+    restart: always
     container_name: postgres-sonar
     networks:
       app_net:
@@ -116,9 +199,13 @@ volumes:
   portainer_data:
   nginx-proxy-manager-data:
   nginx-proxy-manager-letsencrypt:
+  consul-server-1-data:
+  consul-server-2-data:
   nexus-data:
+  jenkins_configuration:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
   postgresql:
   postgresql_data:
+  sqlserver_data:
