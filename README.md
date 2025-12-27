@@ -7,10 +7,18 @@
     docker compose up -d
 ```
 
+### Login padrão do postgres
+
+Login:    postgres
+Password:
+
 ### Login padrão do nginx-proxy-manager
 
 Email:    admin@example.com
 Password: changeme
+
+Email:    admin@infinite.com
+Password:
 
 ### Login padrão do Sonatype Nexus Repository
 

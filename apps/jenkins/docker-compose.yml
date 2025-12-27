@@ -1,0 +1,22 @@
+services:  
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+    container_name: jenkins
+    volumes:
+      - 'jenkins_configuration:/var/jenkins_home'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.20
+networks:
+  app_net:
+    external: true
+    name: network_proxy
+
+volumes:
+  jenkins_configuration:

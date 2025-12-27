@@ -1,9 +1,4 @@
-version: '2.0'
-
 services:
-
-  # Gerenciamento
-
   portainer:
     image: portainer/portainer-ce:latest
     container_name: 'portainer'
@@ -32,50 +27,6 @@ services:
     networks:
       app_net:
         ipv4_address: 172.20.1.3
-
-  consul-server-1:
-    image: hashicorp/consul:1.18
-    hostname: consul-server-1
-    container_name: consul-server-1
-    ports:
-      - "8500:8500" # UI, API
-      - "8600:8600/udp" # DNS
-    volumes:
-      - 'consul-server-1-data:/consul/data'
-    command:
-      - consul
-      - agent
-      - -server
-      - -bootstrap-expect=2
-      - -ui
-      - -node=consul-server-1
-      - -client=0.0.0.0
-      - -data-dir=/consul/data
-      - -retry-join=consul-server-2
-      - -encrypt=${CONSUL_ENCRYPT_KEY}
-    networks:
-      app_net:
-        ipv4_address: 172.20.1.4
-
-  consul-server-2:
-    image: hashicorp/consul:1.18
-    hostname: consul-server-2
-    container_name: consul-server-2
-    volumes:
-      - 'consul-server-2-data:/consul/data'
-    command:
-      - consul
-      - agent
-      - -server
-      - -bootstrap-expect=2
-      - -node=consul-server-2
-      - -client=0.0.0.0
-      - -data-dir=/consul/data
-      - -retry-join=consul-server-1
-      - -encrypt=${CONSUL_ENCRYPT_KEY}
-    networks:
-      app_net:
-        ipv4_address: 172.20.1.5
 
   sonatype-nexus:
     image: sonatype/nexus3:latest
@@ -158,21 +109,14 @@ services:
 
 networks:
   app_net:
+    external: true
     name: network_proxy
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
 
 volumes:
   portainer_data:
   nginx-proxy-manager-data:
   nginx-proxy-manager-letsencrypt:
-  consul-server-1-data:
-  consul-server-2-data:
   nexus-data:
-  jenkins_configuration:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:

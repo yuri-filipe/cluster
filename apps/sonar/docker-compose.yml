@@ -1,0 +1,22 @@
+services:
+  
+  sonatype-nexus:
+    image: sonatype/nexus3:latest
+    hostname: sonatype-nexus
+    container_name: sonatype-nexus
+    restart: always
+    volumes:
+      - 'nexus-data:/nexus-data'
+    ports:
+      - "8081:8081"
+    networks:
+      app_net:
+        ipv4_address: 172.20.1.10
+
+networks:
+  app_net:
+    external: true
+    name: network_proxy
+
+volumes:
+  nexus-data:
