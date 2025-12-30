@@ -1,0 +1,12 @@
+services:
+  http-test:
+    image: nginxdemos/hello
+    container_name: http-test-hello
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - nginx-logs:/var/log/nginx
+
+volumes:
+  nginx-logs:

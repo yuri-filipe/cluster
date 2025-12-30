@@ -1,0 +1,20 @@
+services:
+  dns:
+    image: andyshinn/dnsmasq:latest
+    container_name: dnsmasq
+    restart: unless-stopped
+
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+
+    volumes:
+      - ./conf:/etc/dnsmasq.d:ro
+
+    cap_add:
+      - NET_ADMIN
+
+    command: >
+      --no-daemon
+      --log-queries
+      --log-facility=-
