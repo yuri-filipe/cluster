@@ -1,3 +1,5 @@
 .env
 /data
 /letsencrypt
+postgres_password.txt
+app_password.txt

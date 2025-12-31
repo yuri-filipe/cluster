@@ -1,0 +1,90 @@
+name: pg-prod
+
+services:
+  postgres:
+    image: postgres:18.1-bookworm
+    container_name: pg
+    restart: unless-stopped
+
+    # Postgres usa shared memory; aumentar /dev/shm evita gargalos em sorts/hash grandes
+    shm_size: "1gb"
+
+    environment:
+      TZ: America/Sao_Paulo
+
+      # Segredos via arquivo (_FILE) suportado pela imagem oficial
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+
+      # Postgres 18+: PGDATA versionado; volume deve ser /var/lib/postgresql
+      PGDATA: /var/lib/postgresql/18/docker
+
+      # initdb hardening: checksums + SCRAM host/local
+      POSTGRES_INITDB_ARGS: "--data-checksums --auth-host=scram-sha-256 --auth-local=scram-sha-256"
+
+    secrets:
+      - postgres_password
+      - app_password
+
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./conf/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./conf/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ./backups:/backups
+
+    # Segurança “padrão ouro” num VPS single-host: expõe só no localhost.
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    command:
+      - "postgres"
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres -h 127.0.0.1 -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    stop_grace_period: 60s
+
+  backup:
+    image: postgres:18.1-bookworm
+    container_name: pg-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      TZ: America/Sao_Paulo
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: postgres
+    secrets:
+      - postgres_password
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+    entrypoint: ["/bin/bash", "/scripts/backup.sh"]
+    networks:
+      app_net:
+        ipv4_address: 172.20.2.2
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  app_password:
+    file: ./secrets/app_password.txt
+
+volumes:
+  pgdata:
+
+networks:
+  app_net:
+    external: true
+    name: network_proxy
