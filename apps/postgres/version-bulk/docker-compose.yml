@@ -34,8 +34,9 @@ services:
       - ./init:/docker-entrypoint-initdb.d:ro
       - ./backups:/backups
 
-    # Segurança “padrão ouro” num VPS single-host: expõe só no localhost.
+    # Segurança “padrão ouro” num VPS single-host: expõe só no VPN.
     ports:
+      - "10.66.66.1:5432:5432"
       - "127.0.0.1:5432:5432"
 
     command:
@@ -46,7 +47,8 @@ services:
       - "hba_file=/etc/postgresql/pg_hba.conf"
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres -h 127.0.0.1 -p 5432"]
+      interval: 10s
       timeout: 5s
       retries: 10
 
