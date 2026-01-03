@@ -52,6 +52,9 @@ services:
       timeout: 5s
       retries: 10
 
+    networks:
+      - infra
+
     stop_grace_period: 60s
 
   backup:
@@ -81,3 +84,7 @@ secrets:
 
 volumes:
   pgdata:
+
+networks:
+  infra:
+    external: true
