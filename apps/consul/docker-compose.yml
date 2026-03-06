@@ -2,7 +2,7 @@ version: '2.0'
 
 services:
   consul-server-1:
-    image: hashicorp/consul:1.18
+    image: hashicorp/consul:latest
     hostname: consul-server-1
     container_name: consul-server-1
     ports:
@@ -26,7 +26,7 @@ services:
         ipv4_address: 172.20.1.4
 
   consul-server-2:
-    image: hashicorp/consul:1.18
+    image: hashicorp/consul:latest
     hostname: consul-server-2
     container_name: consul-server-2
     volumes:
