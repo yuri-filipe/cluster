@@ -6,6 +6,8 @@ services:
     hostname: consul-server-1
     restart: always
     container_name: consul-server-1
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
     ports:
       - "8500:8500" # UI, API
       - "8600:8600/udp" # DNS
@@ -46,6 +48,8 @@ services:
     hostname: consul-server-2
     restart: always
     container_name: consul-server-2
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
     volumes:
       - 'consul-server-2-data:/consul/data'
       - './config/consul-config.hcl:/consul/config/consul-config.hcl' # Monta o arquivo de configuração HCL
