@@ -1,8 +1,8 @@
-version: '2.0'
+version: '3.8'
 
 services:
   consul-server-1:
-    image: hashicorp/consul:1.18
+    image: hashicorp/consul:latest
     hostname: consul-server-1
     restart: always
     container_name: consul-server-1
@@ -25,11 +25,24 @@ services:
       - -encrypt=${CONSUL_ENCRYPT_KEY}
       - -config-dir=/consul/config # Aponta para o diretório de configuração
     networks:
-      app_net:
-        ipv4_address: 172.20.1.4
+      - infra
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      # Rota externa segura com seu domínio de produção
+      - "traefik.http.routers.consul.rule=Host(`consul.devinfinite.cloud`)"
+      - "traefik.http.routers.consul.entrypoints=websecure"
+      - "traefik.http.routers.consul.tls.certresolver=leresolver"
+      - "traefik.http.services.consul.loadbalancer.server.port=8500"
+      
+      # Middleware CORS para permitir que aplicações frontend façam leitura
+      - "traefik.http.middlewares.consul-cors.headers.accesscontrolallowmethods=GET,OPTIONS"
+      - "traefik.http.middlewares.consul-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.consul-cors.headers.accesscontrolallowheaders=X-Consul-Token,Content-Type"
+      - "traefik.http.routers.consul.middlewares=consul-cors"
 
   consul-server-2:
-    image: hashicorp/consul:1.18
+    image: hashicorp/consul:latest
     hostname: consul-server-2
     restart: always
     container_name: consul-server-2
@@ -48,16 +61,26 @@ services:
       - -encrypt=${CONSUL_ENCRYPT_KEY}
       - -config-dir=/consul/config # Aponta para o diretório de configuração
     networks:
-      app_net:
-        ipv4_address: 172.20.1.5
+      - infra
+      - traefik-network
+
+  # Container temporário apenas para criar as permissões automaticamente
+  consul-init:
+    image: curlimages/curl:latest
+    container_name: consul-init
+    depends_on:
+      - consul-server-1
+    volumes:
+      - './config/init-acl.sh:/init-acl.sh'
+    command: ["sh", "/init-acl.sh"]
+    networks:
+      - infra
+
 networks:
-  app_net:
-    name: network_proxy
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
+  infra:
+    external: true
+  traefik-network:
+    external: true
 
 volumes:
   consul-server-1-data:
